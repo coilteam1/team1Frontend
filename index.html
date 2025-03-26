@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UD Virtual Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .chat-container {
+            width: 50%;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .chat-box {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .input-box {
+            display: flex;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px;
+            border: none;
+            background: blue;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h2>University of Dayton Virtual Assistant</h2>
+        <div class="chat-box" id="chat-box"></div>
+        <div class="input-box">
+            <input type="text" id="user-input" placeholder="Ask me anything...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const inputField = document.getElementById("user-input");
+            const chatBox = document.getElementById("chat-box");
+            const userMessage = inputField.value;
+            if (!userMessage) return;
+
+            chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
+            inputField.value = "";
+
+            fetch("http://localhost:8080/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question: userMessage })
+            })
+            .then(response => response.json())
+            .then(data => {
+                chatBox.innerHTML += `<p><strong>Bot:</strong> ${data.answer}</p>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            })
+            .catch(error => console.error("Error:", error));
+        }
+        
+    </script>
+    <script>
+        document.getElementById("user-input").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Prevent form submission if inside a form
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
