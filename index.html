@@ -165,7 +165,7 @@
       })
       .then(response => response.json())
       .then(data => {
-        chatBox.innerHTML += `<p><strong>Bot:</strong> ${data.answer}</p>`;
+        chatBox.innerHTML += `<p><strong>Rudy Flyer:</strong> ${data.answer}</p>`;
         chatBox.scrollTop = chatBox.scrollHeight;
       })
       .catch(error => console.error("Error:", error));
