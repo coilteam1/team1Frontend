@@ -135,7 +135,7 @@
       chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
       inputField.value = "";
 
-      fetch("https://coilteam1-backend.eastus-01.azurewebsites.net/api/chat", {
+      fetch("https://coilteam1-backend.azurewebsites.net/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: userMessage })
