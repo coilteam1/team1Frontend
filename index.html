@@ -196,34 +196,35 @@
       }
     });
 
-    // Manual scraper
-    function scrapeURL() {
-      const urlInput = document.getElementById("url-input").value;
-      const scrapedContent = document.getElementById("scraped-content");
+  function scrapeURL() {
+    const urlInput = document.getElementById("url-input").value;
+    const scrapedContent = document.getElementById("scraped-content");
 
-      scrapedContent.innerHTML = '<div class="loader"></div>';
+    scrapedContent.innerHTML = '<div class="loader"></div>';
 
-      fetch("http://coilteam1-backend.azurewebsites.net/api/scrape", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: urlInput })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.answer) {
-          scrapedContent.innerHTML = `<p><strong>Scraped summary from ${urlInput}:</strong></p><p>${data.answer}</p>`;
-        } else {
-          scrapedContent.innerHTML = `<p>Sorry, we couldn't get any content from ${urlInput}.</p>`;
-        }
-      })
-      .catch(error => {
-        console.error("Scrape Error:", error);
+    fetch("https://coilteam1-backend.azurewebsites.net/api/scrape", {  
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: urlInput })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.scrapedText && Array.isArray(data.scrapedText)) {
+        const summaries = data.scrapedText.map(chunk => `<p>${chunk}</p>`).join("");
         scrapedContent.innerHTML = `
           <p><strong>Scraped content from ${urlInput}:</strong></p>
-          <p>Welcome to the University of Dayton, a top-tier Catholic research university rooted in the Marianist tradition.</p>
-          <p>We foster a diverse, inclusive community where students grow as scholars, leaders, and global citizens.</p>`;
-      });
-    }
+          ${summaries}
+        `;
+      } else {
+        scrapedContent.innerHTML = `<p>Sorry, we couldn't get any content from ${urlInput}.</p>`;
+      }
+    })
+    .catch(error => {
+      console.error("Scrape Error:", error);
+      scrapedContent.innerHTML = `<p style="color: red;">Scrape failed. Please try again later.</p>`;
+    });
+  }
+
 
     // Auto scrape loop
     const udaytonLinks = [
@@ -272,23 +273,33 @@
 
       for (const url of udaytonLinks) {
         try {
-          const response = await fetch("http://coilteam1-backend.azurewebsites.net/api/scrape", {
+          const response = await fetch("https://coilteam1-backend.azurewebsites.net/api/scrape", {  // 🔥 HTTPS
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ url })
           });
 
           const data = await response.json();
-          const summary = data.answer || "No summary returned.";
+      
+          if (data.scrapedText && Array.isArray(data.scrapedText)) {
+            const summary = data.scrapedText.slice(0, 5).map(chunk => `<p>${chunk}</p>`).join("");  // show first 5 chunks
+            allSummaries += `
+              <div style="margin-bottom: 20px;">
+                <strong>${url}</strong>
+                ${summary}
+              </div>
+            `;
+          } else {
+            allSummaries += `
+              <div style="margin-bottom: 20px;">
+                <strong>${url}</strong>
+                <p style="color: red;">No scraped text returned.</p>
+              </div>
+            `;
+          }
 
-          allSummaries += `
-            <div style="margin-bottom: 20px;">
-              <strong>${url}</strong>
-              <p>${summary}</p>
-            </div>
-          `;
-        } catch (error) {
-          console.error(`Error fetching summary for ${url}:`, error);
+            } catch (error) {
+              console.error(`Error fetching summary for ${url}:`, error);
           allSummaries += `
             <div style="margin-bottom: 20px;">
               <strong>${url}</strong>
@@ -300,6 +311,7 @@
 
       scrapedContent.innerHTML = allSummaries;
     }
+
   </script>
 </body>
 </html>
