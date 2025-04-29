@@ -1,94 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UD Virtual Assistant</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #f4f4f4;
-        }
-        .chat-container {
-            width: 50%;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .chat-box {
-            height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        .input-box {
-            display: flex;
-        }
-        input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px;
-            border: none;
-            background: blue;
-            color: white;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-left: 5px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UDayton Virtual Assistant</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #dbe9f4, #f4f4f4);
+    }
+    .chat-container {
+      width: 90%;
+      max-width: 500px;
+      backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.7);
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      animation: fadeIn 0.8s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .logo-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .logo {
+      width: 60px;
+      height: auto;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    }
+    .header-buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+    .header-buttons a {
+      text-decoration: none;
+      background: #0056A6;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+    .header-buttons a:hover {
+      background: #003b73;
+      transform: translateY(-2px);
+    }
+    .chat-box {
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      background-color: rgba(255, 255, 255, 0.8);
+      text-align: left;
+      font-size: 14px;
+    }
+    .input-box {
+      display: flex;
+      gap: 8px;
+    }
+    input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+    button {
+      padding: 12px 20px;
+      border: none;
+      background: #0056A6;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+    button:hover {
+      background: #003b73;
+      transform: translateY(-2px);
+    }
+    h2 {
+      font-size: 22px;
+      color: #222;
+      margin: 0;
+    }
+  </style>
 </head>
 <body>
-    <div class="chat-container">
-        <h2>University of Dayton Virtual Assistant</h2>
-        <div class="chat-box" id="chat-box"></div>
-        <div class="input-box">
-            <input type="text" id="user-input" placeholder="Ask me anything...">
-            <button onclick="sendMessage()">Send</button>
-        </div>
+  <div class="chat-container">
+    <div class="logo-title">
+      <img src="udayton.png" alt="University of Dayton Logo" class="logo">
+      <h2>UDayton Virtual Assistant</h2>
     </div>
+    <div class="header-buttons">
+      <a href="https://udayton.edu/advancement/index.php" target="_blank">Alumni</a>
+      <a href="https://udayton.edu/parents/index.php" target="_blank">Parents</a>
+      <a href="https://porches.udayton.edu/group/porches/student-resources" target="_blank">Students</a>
+    </div>
+    <div class="chat-box" id="chat-box"></div>
+    <div class="input-box">
+      <input type="text" id="user-input" placeholder="Ask me anything...">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
 
-    <script>
-        function sendMessage() {
-            const inputField = document.getElementById("user-input");
-            const chatBox = document.getElementById("chat-box");
-            const userMessage = inputField.value;
-            if (!userMessage) return;
+  <script>
+    function sendMessage() {
+      const inputField = document.getElementById("user-input");
+      const chatBox = document.getElementById("chat-box");
+      const userMessage = inputField.value;
+      if (!userMessage) return;
 
-            chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
-            inputField.value = "";
+      chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
+      inputField.value = "";
 
-            fetch("https://coilteam1-backend-f9f3dxgdc0h0ajcw.eastus-01.azurewebsites.net/api/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ question: userMessage })
-            })
-            .then(response => response.json())
-            .then(data => {
-                chatBox.innerHTML += `<p><strong>Bot:</strong> ${data.answer}</p>`;
-                chatBox.scrollTop = chatBox.scrollHeight;
-            })
-            .catch(error => console.error("Error:", error));
-        }
-        
-    </script>
-    <script>
-        document.getElementById("user-input").addEventListener("keydown", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault(); // Prevent form submission if inside a form
-                sendMessage();
-            }
-        });
-    </script>
+      fetch("https://coilteam1-backend-f9f3dxgdc0h0ajcw.eastus-01.azurewebsites.net/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: userMessage })
+      })
+      .then(response => response.json())
+      .then(data => {
+        chatBox.innerHTML += `<p><strong>Bot:</strong> ${data.answer}</p>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+      })
+      .catch(error => console.error("Error:", error));
+    }
+
+    document.getElementById("user-input").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
 </body>
 </html>
