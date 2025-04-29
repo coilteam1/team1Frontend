@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UDayton Virtual Assistant</title>
   <style>
     body {
@@ -10,22 +10,14 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: start;
-      padding-top: 20px;
-      min-height: 100vh;
+      justify-content: center;
+      height: 100vh;
       margin: 0;
       background: linear-gradient(135deg, #dbe9f4, #f4f4f4);
     }
-    .container {
+    .chat-container {
       width: 90%;
       max-width: 500px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 30px;
-    }
-    .chat-container, .scrape-container {
-      width: 100%;
       backdrop-filter: blur(12px);
       background: rgba(255, 255, 255, 0.7);
       padding: 25px;
@@ -71,7 +63,7 @@
       background: #003b73;
       transform: translateY(-2px);
     }
-    .chat-box, .scraped-content {
+    .chat-box {
       height: 300px;
       overflow-y: auto;
       border: 1px solid #ddd;
@@ -113,60 +105,46 @@
       color: #222;
       margin: 0;
     }
-    h3 {
-      font-size: 18px;
-      color: #333;
-      margin-bottom: 15px;
-    }
-    .loader {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #0056A6;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Virtual Assistant Section -->
-    <div class="chat-container">
-      <div class="logo-title">
-        <img src="udayton.png" alt="University of Dayton Logo" class="logo">
-        <h2>UDayton Virtual Assistant</h2>
-      </div>
-      <div class="header-buttons">
-        <a href="https://udayton.edu/advancement/index.php" target="_blank">Alumni</a>
-        <a href="https://udayton.edu/parents/index.php" target="_blank">Parents</a>
-        <a href="https://porches.udayton.edu/group/porches/student-resources" target="_blank">Students</a>
-      </div>
-      <div class="chat-box" id="chat-box"></div>
-      <div class="input-box">
-        <input type="text" id="user-input" placeholder="Ask me anything...">
-        <button onclick="sendMessage()">Send</button>
-      </div>
+  <div class="chat-container">
+    <div class="logo-title">
+      <img src="udayton.png" alt="University of Dayton Logo" class="logo">
+      <h2>UDayton Virtual Assistant</h2>
     </div>
-
-    <!-- Scraping Section -->
-    <div class="scrape-container">
-      <h3>AI Scraper</h3>
-      <div class="input-box">
-        <input type="text" id="url-input" placeholder="Enter URL to scrape..." value="https://udayton.edu/about/index.php">
-        <button onclick="scrapeURL()">Scrape</button>
-      </div>
-      <button onclick="trainAssistantWithPages()">Train from predefined UDayton pages</button>
-      <div class="scraped-content" id="scraped-content"></div>
+    <div class="header-buttons">
+      <a href="https://udayton.edu/advancement/index.php" target="_blank">Alumni</a>
+      <a href="https://udayton.edu/parents/index.php" target="_blank">Parents</a>
+      <a href="https://porches.udayton.edu/group/porches/student-resources" target="_blank">Students</a>
+    </div>
+    <div class="chat-box" id="chat-box"></div>
+    <div class="input-box">
+      <input type="text" id="user-input" placeholder="Ask me anything...">
+      <button onclick="sendMessage()">Send</button>
     </div>
   </div>
+  <!-- Scrape Section -->
+  <div class="chat-container">
+    <h2>AI Scraper</h2>
+    <div class="input-box" style="margin-bottom: 15px;">
+      <input type="text" id="scrape-url" placeholder="Enter a UD URL to scrape" />
+      <button onclick="scrapeURL()">Scrape</button>
+    </div>
+    <div id="scrape-result" style="
+        max-height: 200px;
+        overflow-y: auto;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.8);
+        font-size: 14px;
+        text-align: left;
+    "></div>
+</div>
+
 
   <script>
-    // Chat assistant
     function sendMessage() {
       const inputField = document.getElementById("user-input");
       const chatBox = document.getElementById("chat-box");
@@ -197,121 +175,36 @@
     });
 
   function scrapeURL() {
-    const urlInput = document.getElementById("url-input").value;
-    const scrapedContent = document.getElementById("scraped-content");
+    const scrapeUrl = document.getElementById("scrape-url").value;
+    const resultBox = document.getElementById("scrape-result");
 
-    scrapedContent.innerHTML = '<div class="loader"></div>';
+    if (!scrapeUrl) {
+      resultBox.innerHTML = "<p style='color: red;'>Please enter a URL.</p>";
+      return;
+    }
 
-    fetch("https://coilteam1-backend.azurewebsites.net/api/scrape", {  
+    resultBox.innerHTML = "<p>⏳ Scraping and embedding content...</p>";
+
+    fetch("https://coilteam1-backend.azurewebsites.net/api/scrape", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: urlInput })
+      body: JSON.stringify({ url: scrapeUrl })
     })
     .then(response => response.json())
     .then(data => {
-      if (data.scrapedText && Array.isArray(data.scrapedText)) {
-        const summaries = data.scrapedText.map(chunk => `<p>${chunk}</p>`).join("");
-        scrapedContent.innerHTML = `
-          <p><strong>Scraped content from ${urlInput}:</strong></p>
-          ${summaries}
-        `;
+      if (data.message) {
+        resultBox.innerHTML = `<p style="color: green;">✅ ${data.message}</p>`;
+      } else if (data.error) {
+        resultBox.innerHTML = `<p style="color: red;">❌ ${data.error}</p>`;
       } else {
-        scrapedContent.innerHTML = `<p>Sorry, we couldn't get any content from ${urlInput}.</p>`;
+        resultBox.innerHTML = "<p style='color: red;'>Unexpected response from server.</p>";
       }
     })
-    .catch(error => {
-      console.error("Scrape Error:", error);
-      scrapedContent.innerHTML = `<p style="color: red;">Scrape failed. Please try again later.</p>`;
+    .catch(err => {
+      console.error("Scrape failed:", err);
+      resultBox.innerHTML = "<p style='color: red;'>❌ Scrape failed. Check console for details.</p>";
     });
   }
-
-
-    // Auto scrape loop
-    const udaytonLinks = [
-      "https://udayton.edu/",
-      "https://udayton.edu/about/index.php",
-      "https://udayton.edu/about/mission-and-identity.php",
-      "https://udayton.edu/about/leadership.php",
-      "https://udayton.edu/about/dayton.php",
-      "https://udayton.edu/academics/index.php",
-      "https://udayton.edu/artssciences/index.php",
-      "https://udayton.edu/business/index.php",
-      "https://udayton.edu/educationandhealth/index.php",
-      "https://udayton.edu/engineering/index.php",
-      "https://udayton.edu/law/index.php",
-      "https://udayton.edu/libraries/index.php",
-      "https://udayton.edu/apply/index.php",
-      "https://udayton.edu/apply/undergraduate.php",
-      "https://udayton.edu/apply/graduate.php",
-      "https://udayton.edu/apply/international.php",
-      "https://udayton.edu/finaid/index.php",
-      "https://udayton.edu/finaid/apply.php",
-      "https://udayton.edu/finaid/scholarships.php",
-      "https://udayton.edu/studev/index.php",
-      "https://udayton.edu/studev/housing/index.php",
-      "https://udayton.edu/studev/campusrec/index.php",
-      "https://udayton.edu/studev/leadership/involvement/index.php",
-      "https://udayton.edu/studev/resources/index.php",
-      "https://udayton.edu/studev/health_wellness/index.php",
-      "https://udayton.edu/research/index.php",
-      "https://udayton.edu/udri/index.php",
-      "https://udayton.edu/research/technology-transfer/index.php",
-      "https://udayton.edu/diversity/index.php",
-      "https://udayton.edu/equity/index.php",
-      "https://udayton.edu/advancement/index.php",
-      "https://udayton.edu/advancement/give/index.php",
-      "https://udayton.edu/advancement/alumni/index.php",
-      "https://udayton.edu/directory/index.php",
-      "https://udayton.edu/calendar/index.php",
-      "https://udayton.edu/news/index.php"
-    ];
-
-    async function trainAssistantWithPages() {
-      const scrapedContent = document.getElementById("scraped-content");
-      scrapedContent.innerHTML = '<div class="loader"></div>';
-      let allSummaries = "";
-
-      for (const url of udaytonLinks) {
-        try {
-          const response = await fetch("https://coilteam1-backend.azurewebsites.net/api/scrape", {  // 🔥 HTTPS
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url })
-          });
-
-          const data = await response.json();
-      
-          if (data.scrapedText && Array.isArray(data.scrapedText)) {
-            const summary = data.scrapedText.slice(0, 5).map(chunk => `<p>${chunk}</p>`).join("");  // show first 5 chunks
-            allSummaries += `
-              <div style="margin-bottom: 20px;">
-                <strong>${url}</strong>
-                ${summary}
-              </div>
-            `;
-          } else {
-            allSummaries += `
-              <div style="margin-bottom: 20px;">
-                <strong>${url}</strong>
-                <p style="color: red;">No scraped text returned.</p>
-              </div>
-            `;
-          }
-
-            } catch (error) {
-              console.error(`Error fetching summary for ${url}:`, error);
-          allSummaries += `
-            <div style="margin-bottom: 20px;">
-              <strong>${url}</strong>
-              <p style="color: red;">Error retrieving summary.</p>
-            </div>
-          `;
-        }
-      }
-
-      scrapedContent.innerHTML = allSummaries;
-    }
-
   </script>
 </body>
 </html>
