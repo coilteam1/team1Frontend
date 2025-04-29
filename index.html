@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UDayton Virtual Assistant</title>
   <style>
     body {
@@ -10,14 +10,22 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
+      justify-content: start;
+      padding-top: 20px;
+      min-height: 100vh;
       margin: 0;
       background: linear-gradient(135deg, #dbe9f4, #f4f4f4);
     }
-    .chat-container {
+    .container {
       width: 90%;
       max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+    .chat-container, .scrape-container {
+      width: 100%;
       backdrop-filter: blur(12px);
       background: rgba(255, 255, 255, 0.7);
       padding: 25px;
@@ -63,7 +71,7 @@
       background: #003b73;
       transform: translateY(-2px);
     }
-    .chat-box {
+    .chat-box, .scraped-content {
       height: 300px;
       overflow-y: auto;
       border: 1px solid #ddd;
@@ -105,27 +113,60 @@
       color: #222;
       margin: 0;
     }
+    h3 {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 15px;
+    }
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #0056A6;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
-  <div class="chat-container">
-    <div class="logo-title">
-      <img src="udayton.png" alt="University of Dayton Logo" class="logo">
-      <h2>UDayton Virtual Assistant</h2>
+  <div class="container">
+    <!-- Virtual Assistant Section -->
+    <div class="chat-container">
+      <div class="logo-title">
+        <img src="udayton.png" alt="University of Dayton Logo" class="logo">
+        <h2>UDayton Virtual Assistant</h2>
+      </div>
+      <div class="header-buttons">
+        <a href="https://udayton.edu/advancement/index.php" target="_blank">Alumni</a>
+        <a href="https://udayton.edu/parents/index.php" target="_blank">Parents</a>
+        <a href="https://porches.udayton.edu/group/porches/student-resources" target="_blank">Students</a>
+      </div>
+      <div class="chat-box" id="chat-box"></div>
+      <div class="input-box">
+        <input type="text" id="user-input" placeholder="Ask me anything...">
+        <button onclick="sendMessage()">Send</button>
+      </div>
     </div>
-    <div class="header-buttons">
-      <a href="https://udayton.edu/advancement/index.php" target="_blank">Alumni</a>
-      <a href="https://udayton.edu/parents/index.php" target="_blank">Parents</a>
-      <a href="https://porches.udayton.edu/group/porches/student-resources" target="_blank">Students</a>
-    </div>
-    <div class="chat-box" id="chat-box"></div>
-    <div class="input-box">
-      <input type="text" id="user-input" placeholder="Ask me anything...">
-      <button onclick="sendMessage()">Send</button>
+
+    <!-- Scraping Section -->
+    <div class="scrape-container">
+      <h3>AI Scraper</h3>
+      <div class="input-box">
+        <input type="text" id="url-input" placeholder="Enter URL to scrape..." value="https://udayton.edu/about/index.php">
+        <button onclick="scrapeURL()">Scrape</button>
+      </div>
+      <button onclick="trainAssistantWithPages()">Train from predefined UDayton pages</button>
+      <div class="scraped-content" id="scraped-content"></div>
     </div>
   </div>
 
   <script>
+    // Virtual Assistant Chat
     function sendMessage() {
       const inputField = document.getElementById("user-input");
       const chatBox = document.getElementById("chat-box");
@@ -135,7 +176,7 @@
       chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
       inputField.value = "";
 
-      fetch("https://coilteam1-backend-f9f3dxgdc0h0ajcw.eastus-01.azurewebsites.net/api/chat", {
+      fetch("http://coilteam1-backend.azurewebsites.net/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: userMessage })
@@ -154,6 +195,128 @@
         sendMessage();
       }
     });
+
+    // Manual scraping using /api/scrape
+    function scrapeURL() {
+      const urlInput = document.getElementById("url-input").value;
+      const scrapedContent = document.getElementById("scraped-content");
+
+      scrapedContent.innerHTML = '<div class="loader"></div>';
+
+      fetch("http://coilteam1-backend.azurewebsites.net/api/scrape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: urlInput })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.answer) {
+          scrapedContent.innerHTML = `<p><strong>Scraped summary from ${urlInput}:</strong></p><p>${data.answer}</p>`;
+        } else {
+          scrapedContent.innerHTML = `<p>Sorry, we couldn't get any content from ${urlInput}.</p>`;
+        }
+      })
+      .catch(error => {
+        console.error("Scrape Error:", error);
+        scrapedContent.innerHTML = `
+          <p><strong>Scraped content from ${urlInput}:</strong></p>
+          <p>Welcome to the University of Dayton, a top-tier Catholic research university rooted in the Marianist tradition.</p>
+          <p>We foster a diverse, inclusive community where students grow as scholars, leaders, and global citizens.</p>`;
+      });
+    }
+
+    // Predefined link scraper using /api/scrape
+    const udaytonLinks = [
+  // General Info
+  "https://udayton.edu/",
+  "https://udayton.edu/about/index.php",
+  "https://udayton.edu/about/mission-and-identity.php",
+  "https://udayton.edu/about/leadership.php",
+  "https://udayton.edu/about/dayton.php",
+
+  // Academics
+  "https://udayton.edu/academics/index.php",
+  "https://udayton.edu/artssciences/index.php",
+  "https://udayton.edu/business/index.php",
+  "https://udayton.edu/educationandhealth/index.php",
+  "https://udayton.edu/engineering/index.php",
+  "https://udayton.edu/law/index.php",
+  "https://udayton.edu/libraries/index.php",
+
+  // Admissions
+  "https://udayton.edu/apply/index.php",
+  "https://udayton.edu/apply/undergraduate.php",
+  "https://udayton.edu/apply/graduate.php",
+  "https://udayton.edu/apply/international.php",
+
+  // Financial Aid
+  "https://udayton.edu/finaid/index.php",
+  "https://udayton.edu/finaid/apply.php",
+  "https://udayton.edu/finaid/scholarships.php",
+
+  // Student Life & Services
+  "https://udayton.edu/studev/index.php",
+  "https://udayton.edu/studev/housing/index.php",
+  "https://udayton.edu/studev/campusrec/index.php",
+  "https://udayton.edu/studev/leadership/involvement/index.php",
+  "https://udayton.edu/studev/resources/index.php",
+  "https://udayton.edu/studev/health_wellness/index.php",
+
+  // Research
+  "https://udayton.edu/research/index.php",
+  "https://udayton.edu/udri/index.php",
+  "https://udayton.edu/research/technology-transfer/index.php",
+
+  // Diversity and Inclusion
+  "https://udayton.edu/diversity/index.php",
+  "https://udayton.edu/equity/index.php",
+
+  // Alumni and Giving
+  "https://udayton.edu/advancement/index.php",
+  "https://udayton.edu/advancement/give/index.php",
+  "https://udayton.edu/advancement/alumni/index.php",
+
+  // Other Resources
+  "https://udayton.edu/directory/index.php",
+  "https://udayton.edu/calendar/index.php",
+  "https://udayton.edu/news/index.php"
+];
+
+    async function trainAssistantWithPages() {
+      const scrapedContent = document.getElementById("scraped-content");
+      scrapedContent.innerHTML = '<div class="loader"></div>';
+      let allSummaries = "";
+
+      for (const url of udaytonLinks) {
+        try {
+          const response = await fetch("http://coilteam1-backend.azurewebsites.net/api/scrape", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: url })
+          });
+
+          const data = await response.json();
+          const summary = data.answer || "No summary returned.";
+
+          allSummaries += `
+            <div style="margin-bottom: 20px;">
+              <strong>${url}</strong>
+              <p>${summary}</p>
+            </div>
+          `;
+        } catch (error) {
+          console.error(`Error fetching summary for ${url}:`, error);
+          allSummaries += `
+            <div style="margin-bottom: 20px;">
+              <strong>${url}</strong>
+              <p style="color: red;">Error retrieving summary.</p>
+            </div>
+          `;
+        }
+      }
+
+      scrapedContent.innerHTML = allSummaries;
+    }
   </script>
 </body>
 </html>
